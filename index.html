@@ -1945,6 +1945,125 @@ function NAFDACReport({ batches }) {
 
   const printReport = () => window.print();
 
+  const downloadCSV = () => {
+    const headers = ['Batch ID','Type','Date','Oil Volume (L)','Target IU/g','Vit A (g)','Operator','Approver','NAFDAC Status'];
+    const rows = batches.filter(b=>b.type==='VitaminA').map(b=>[
+      b.id, b.type, b.date, b.oil_volume, b.target_conc||'', b.vitA_g||'',
+      b.operator, b.approver||'Pending',
+      b.status==='approved'&&(b.target_conc||0)>=11?'COMPLIANT':b.status==='pending'?'PENDING':'NON-COMPLIANT'
+    ]);
+    const allRows = [
+      ['UGOMBA NOEL VEGETABLE OIL REFINERY'],
+      ['NAFDAC Compliance Report'],
+      [`Generated: ${todayStr()}`],
+      [''],
+      ['=== VITAMIN A FORTIFICATION RECORDS ==='],
+      headers,
+      ...rows,
+      [''],
+      ['=== ALL APPROVED BATCHES ==='],
+      ['Batch ID','Type','Date','Oil Volume (L)','Operator','Approver','Approved Date'],
+      ...batches.filter(b=>b.status==='approved').map(b=>[
+        b.id, b.type, b.date, b.oil_volume, b.operator, b.approver, b.approved_at||b.date
+      ]),
+    ];
+    const csv = allRows.map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NAFDAC-Report-${todayStr()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadHTML = () => {
+    const approvedBatches = batches.filter(b=>b.status==='approved');
+    const vitBatches = batches.filter(b=>b.type==='VitaminA');
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>NAFDAC Compliance Report — Ugomba Noel</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:40px;color:#222;font-size:13px}
+  h1{color:#1a5c2a;font-size:20px;margin-bottom:4px}
+  h2{color:#1a5c2a;font-size:15px;margin-top:28px;border-bottom:2px solid #1a5c2a;padding-bottom:4px}
+  .header{border:2px solid #1a5c2a;padding:16px;border-radius:6px;margin-bottom:24px;background:#f5fff8}
+  .meta{font-size:12px;color:#555;margin-top:4px}
+  .badge-pass{background:#d4edda;color:#155724;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+  .badge-fail{background:#f8d7da;color:#721c24;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+  .badge-pend{background:#fff3cd;color:#856404;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
+  th{background:#1a5c2a;color:#fff;padding:8px;text-align:left}
+  td{padding:7px 8px;border-bottom:1px solid #ddd}
+  tr:nth-child(even) td{background:#f9f9f9}
+  .metrics{display:flex;gap:16px;margin:16px 0}
+  .metric{border:1px solid #ccc;border-radius:6px;padding:12px;flex:1;text-align:center}
+  .metric-val{font-size:24px;font-weight:bold;color:#1a5c2a}
+  .metric-label{font-size:11px;color:#666;text-transform:uppercase}
+  .declaration{margin-top:28px;padding:14px;background:#f5f5f5;border-left:4px solid #1a5c2a;font-size:12px;color:#444}
+  .footer{margin-top:40px;text-align:center;font-size:11px;color:#888;border-top:1px solid #ddd;padding-top:12px}
+  @media print{body{margin:20px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>⬡ UGOMBA NOEL VEGETABLE OIL REFINERY</h1>
+  <div class="meta">NAFDAC Registration: VEG-OIL/2024/NG · Standard: Edible Vegetable Oil Fortification</div>
+  <div class="meta">Report Generated: ${todayStr()} · Period: 2024</div>
+  <div class="meta" style="margin-top:8px"><strong>NAFDAC Minimum Standard: 11 IU/g Vitamin A</strong></div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-val">${approvedBatches.length}</div><div class="metric-label">Approved Batches</div></div>
+  <div class="metric"><div class="metric-val">${vitBatches.filter(b=>b.status==='approved').length}/${vitBatches.length}</div><div class="metric-label">Vitamin A Batches</div></div>
+  <div class="metric"><div class="metric-val">11 IU/g</div><div class="metric-label">NAFDAC Minimum</div></div>
+  <div class="metric"><div class="metric-val">${Math.round((approvedBatches.length/Math.max(batches.length,1))*100)}%</div><div class="metric-label">Approval Rate</div></div>
+</div>
+
+<h2>Vitamin A Fortification Records</h2>
+<table>
+<thead><tr><th>Batch ID</th><th>Date</th><th>Oil Vol (L)</th><th>Target (IU/g)</th><th>Vit A Added (g)</th><th>Operator</th><th>Approver</th><th>NAFDAC Status</th></tr></thead>
+<tbody>
+${vitBatches.map(b=>`<tr>
+  <td>${b.id}</td><td>${b.date}</td><td>${fmtN(b.oil_volume)}</td>
+  <td>${b.target_conc||'—'}</td><td>${b.vitA_g||'—'}</td>
+  <td>${b.operator}</td><td>${b.approver||'Pending'}</td>
+  <td>${b.status==='approved'&&(b.target_conc||0)>=11?'<span class="badge-pass">✓ COMPLIANT</span>':b.status==='pending'?'<span class="badge-pend">PENDING</span>':'<span class="badge-fail">NON-COMPLIANT</span>'}</td>
+</tr>`).join('')}
+${vitBatches.length===0?'<tr><td colspan="8" style="text-align:center;color:#888">No Vitamin A batches recorded</td></tr>':''}
+</tbody>
+</table>
+
+<h2>All Approved Production Batches</h2>
+<table>
+<thead><tr><th>Batch ID</th><th>Process Type</th><th>Date</th><th>Oil Vol (L)</th><th>Operator</th><th>Approver</th><th>Approved Date</th></tr></thead>
+<tbody>
+${approvedBatches.map(b=>`<tr>
+  <td>${b.id}</td><td>${b.type}</td><td>${b.date}</td>
+  <td>${fmtN(b.oil_volume)}</td><td>${b.operator}</td>
+  <td>${b.approver}</td><td>${b.approved_at||b.date}</td>
+</tr>`).join('')}
+${approvedBatches.length===0?'<tr><td colspan="7" style="text-align:center;color:#888">No approved batches</td></tr>':''}
+</tbody>
+</table>
+
+<div class="declaration">
+  <strong>Declaration:</strong> This report is generated by the Ugomba Noel Vegetable Oil Refinery Operations Platform. All production data is recorded in real-time and subject to internal quality control procedures. Vitamin A fortification is conducted in compliance with NAFDAC regulations for edible vegetable oil fortification in Nigeria (minimum 11 IU/g Retinol equivalent). This document is valid for official submission to the National Agency for Food and Drug Administration and Control (NAFDAC).
+</div>
+<div class="footer">Ugomba Noel Vegetable Oil Refinery · NAFDAC Compliance Report · ${todayStr()}</div>
+</body>
+</html>`;
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NAFDAC-Report-${todayStr()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="flex-between mb-16">
@@ -1952,7 +2071,11 @@ function NAFDACReport({ batches }) {
           <div className="page-heading">NAFDAC Compliance Report</div>
           <div className="page-sub">Generated: {reportDate} · Period: 2024</div>
         </div>
-        <button className="btn btn-blue" onClick={printReport}>⎙ Print Report</button>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-ghost" onClick={downloadCSV}>↓ Download CSV</button>
+          <button className="btn btn-ghost" onClick={downloadHTML}>↓ Download HTML</button>
+          <button className="btn btn-blue" onClick={printReport}>⎙ Print Report</button>
+        </div>
       </div>
 
       <div className="nafdac-header">
