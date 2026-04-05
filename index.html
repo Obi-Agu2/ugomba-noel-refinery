@@ -742,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = e.target.closest('a, button');
     if (!el) return;
     var href = el.getAttribute('href') || '';
-    var text = el.textContent.trim().toLowerCase();
+    var text = el.textContent.trim().toLowerCase(); if(el.classList.contains("lopt") || el.closest(".modal")) return;
     var onclick = el.getAttribute('onclick') || '';
     if (
       href.includes('/shop') ||
@@ -760,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
       text === 'make a business enquiry' ||
       text === 'business enquiries' ||
       text === 'view all blog posts' ||
-      text.includes('read more')
+      text.includes('read more') 
     ) {
       showComingSoon(e);
     }
