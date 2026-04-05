@@ -674,14 +674,14 @@ footer{background:var(--dark);border-top:1px solid rgba(200,150,42,.12);padding:
 <!-- STAFF MODAL -->
 <div class="mbg" id="mbg" onclick="cOutside(event)">
   <div class="modal">
-    <button class="mx" onclick="closeM()">✕</button>
+    <button class="mx" onclick="closeM();return true;">✕</button>
     <div class="mlogo"><div class="mlogo-i">⬡</div><h2>Staff Portal</h2><p>Ugomba Noel Ltd — Select your login type</p></div>
     <div class="mdiv">Choose access type</div>
     <div class="lopts">
-      <a href="https://mail.zoho.com" target="_blank" class="lopt" onclick="closeM()">
+      <a href="https://mail.zoho.com" target="_blank" class="lopt" onclick="closeM();return true;">
         <div class="lopt-i">✉</div><div class="lopt-t">Email Login</div><div class="lopt-d">Access your Zoho business email at ugombanoel.com</div>
       </a>
-      <a href="https://ugomba-noel-refinery.netlify.app" target="_blank" class="lopt gold" onclick="closeM()">
+      <a href="https://ugomba-noel-refinery.netlify.app" target="_blank" class="lopt gold" onclick="closeM();return true;">
         <div class="lopt-i">⬡</div><div class="lopt-t">Operations Platform</div><div class="lopt-d">Calculators, approvals, inventory & NAFDAC reports</div>
       </a>
     </div>
