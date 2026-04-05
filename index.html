@@ -715,5 +715,5 @@ function initRev(){
 }
 initRev();
 </script>
-<script>function comingSoon(e){if(e)e.preventDefault();var t=document.getElementById("cs-toast");if(!t){t=document.createElement("div");t.id="cs-toast";t.style.cssText="position:fixed;bottom:24px;right:24px;z-index:9999;background:#c8962a;color:#fff;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.3);opacity:0;transition:opacity .3s";document.body.appendChild(t);}t.textContent="🚀 Coming Soon! We are working on this. Stay tuned.";t.style.opacity="1";setTimeout(function(){t.style.opacity="0";},3500);}</script></body>
+<script>function comingSoon(e){if(e)e.preventDefault();if(e&&e.target&&e.target.closest(".lopt"))return;var t=document.getElementById("cs-toast");if(!t){t=document.createElement("div");t.id="cs-toast";t.style.cssText="position:fixed;bottom:24px;right:24px;z-index:9999;background:#c8962a;color:#fff;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.3);opacity:0;transition:opacity .3s";document.body.appendChild(t);}t.textContent="🚀 Coming Soon! We are working on this. Stay tuned.";t.style.opacity="1";setTimeout(function(){t.style.opacity="0";},3500);}</script></body>
 </html>
